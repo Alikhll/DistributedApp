@@ -2,6 +2,7 @@
 {
     using MassTransit;
     using MassTransit.Definition;
+    using MassTransit.MongoDbIntegration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
@@ -25,7 +26,11 @@
                         cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
 
                         cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
-                            .RedisRepository();
+                            .MongoDbRepository(r =>
+                            {
+                                r.Connection = "mongodb://localhost";
+                                r.DatabaseName = "orderdb";
+                            });
 
                         cfg.AddBus(ConfigureBus);
                     });

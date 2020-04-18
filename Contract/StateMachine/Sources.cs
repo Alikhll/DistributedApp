@@ -10,6 +10,16 @@ namespace Contract.StateMachine
         public string CustomerNumber { get; set; }
     }
 
+    public class OrderAccepted
+    {
+        public Guid OrderId { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    //////////////////////////////////////////
+    //////////////////////////////////////////
+    //////////////////////////////////////////
+
     public class CheckOrder
     {
         public Guid OrderId { get; set; }
@@ -26,4 +36,15 @@ namespace Contract.StateMachine
     {
         public Guid OrderId { get; set; }
     }
+
+    //////////////////////////////////////////
+    //////////////////////////////////////////
+    //////////////////////////////////////////
+
+    public class CustomerAccountClosed
+    {
+        public Guid CustomerId { get; set; }
+        public string CustomerNumber { get; set; }
+    }
+
 }

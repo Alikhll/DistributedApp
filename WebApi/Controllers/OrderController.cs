@@ -9,13 +9,13 @@ namespace WebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class HomeController : ControllerBase
+    public class OrderController : ControllerBase
     {
         private readonly IRequestClient<SubmitOrder> _submitOrderRequestClient;
         private readonly IRequestClient<CheckOrder> _checkOrderRequestClient;
         private readonly ISendEndpointProvider _sendEndpointProvider;
 
-        public HomeController(IRequestClient<SubmitOrder> submitOrderRequestClient,
+        public OrderController(IRequestClient<SubmitOrder> submitOrderRequestClient,
             IRequestClient<CheckOrder> checkOrderRequestClient,
             ISendEndpointProvider sendEndpointProvider)
         {
@@ -24,11 +24,16 @@ namespace WebApi.Controllers
             _checkOrderRequestClient = checkOrderRequestClient;
         }
 
+        //create saga
         [HttpGet]
         [Route("Request")]
-        public async Task<IActionResult> RequestSend()
+        public async Task<IActionResult> RequestSend(Guid orderId, string customerName)
         {
-            var (accepted, rejected) = await _submitOrderRequestClient.GetResponse<SubmitOrderAccepted, SubmitOrderRejected>(new SubmitOrder { OrderCustomer = "" });
+            var (accepted, rejected) = await _submitOrderRequestClient.GetResponse<SubmitOrderAccepted, SubmitOrderRejected>(new SubmitOrder
+            {
+                OrderCustomer = customerName,
+                OrderId = orderId
+            });
 
             if (accepted.IsCompletedSuccessfully)
                 return Ok((await accepted).Message);
@@ -36,30 +41,33 @@ namespace WebApi.Controllers
             return BadRequest((await rejected).Message);
         }
 
+        //update saga
         [HttpGet]
         [Route("Send")]
-        public async Task<IActionResult> Send()
+        public async Task<IActionResult> Send(Guid orderId, string customerName)
         {
 
             //string consumer = KebabCaseEndpointNameFormatter.Instance.Consumer<SubmitOrderConsumer>();
             //respond = submit-order
 
             var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri("exchange:submit-order"));
-            await endpoint.Send<SubmitOrder>(new SubmitOrder { OrderCustomer = "A" });
+            await endpoint.Send<SubmitOrder>(new SubmitOrder
+            {
+                OrderCustomer = customerName,
+                OrderId = orderId
+            });
 
             return Ok();
         }
 
         [HttpGet]
         [Route("OrderStatus")]
-        public async Task<IActionResult> OrderStatus()
+        public async Task<IActionResult> OrderStatus(Guid orderId)
         {
-            var guid = Guid.Parse("EC8C32B3-E71C-4072-B6B1-0BEA6A342695");
-            //var guid = Guid.Parse("EC8C32B3-E71C-4072-B6B1-0BEA6A342691");
 
             var (status, notFound) = await _checkOrderRequestClient.GetResponse<OrderStatus, OrderNotFound>(new CheckOrder
             {
-                OrderId = guid
+                OrderId = orderId
             });
 
             if (status.IsCompletedSuccessfully)

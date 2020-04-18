@@ -1,11 +1,10 @@
-﻿using GreenPipes;
+﻿using Contract.Consumers;
+using Contract.StateMachine;
+using GreenPipes;
 using MassTransit;
 using MassTransit.ConsumeConfigurators;
 using MassTransit.Definition;
-using Contract.StateMachine;
-using System;
 using System.Threading.Tasks;
-using Contract.Consumers;
 
 namespace Service.Consumers
 {
@@ -30,26 +29,30 @@ namespace Service.Consumers
                 {
                     await context.RespondAsync<SubmitOrderRejected>(new SubmitOrderRejected
                     {
-                        OrderCustomer = "rejected",
-                        Timestmp = InVar.Timestamp
+                        OrderId = context.Message.OrderId,
+                        OrderCustomer = context.Message.OrderCustomer,
+                        Timestmp = InVar.Timestamp,
                     });
+                    return;
                 }
                 else
                 {
-                    //Saga
-                    var guid = Guid.Parse("EC8C32B3-E71C-4072-B6B1-0BEA6A342695");
-                    await context.Publish<OrderSubmitted>(new OrderSubmitted {
-                        OrderId = guid,
-                        CustomerNumber = "cusNumber"
-                    });
-
                     await context.RespondAsync<SubmitOrderAccepted>(new SubmitOrderAccepted
                     {
-                        OrderCustomer = "accepted",
-                        Timestmp = InVar.Timestamp
+                        OrderId = context.Message.OrderId,
+                        OrderCustomer = context.Message.OrderCustomer,
+                        Timestmp = InVar.Timestamp,
                     });
                 }
             }
+
+            //Saga
+            await context.Publish<OrderSubmitted>(new OrderSubmitted
+            {
+                OrderId = context.Message.OrderId,
+                CustomerNumber = context.Message.OrderCustomer,
+                Timestamp = InVar.Timestamp
+            });
         }
     }
 }

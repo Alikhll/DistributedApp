@@ -3,7 +3,8 @@ using Contract.StateMachine;
 using GreenPipes;
 using MassTransit;
 using MassTransit.Definition;
-using MassTransit.RedisIntegration;
+using MassTransit.MongoDbIntegration.Saga;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 
 namespace Service.StateMachine
@@ -13,6 +14,8 @@ namespace Service.StateMachine
         public OrderStateMachine()
         {
             Event(() => OrderSubmitted, x => x.CorrelateById(m => m.Message.OrderId));
+            Event(() => OrderAccepted, x => x.CorrelateById(m => m.Message.OrderId));
+
             Event(() => OrderStatusRequested, x =>
             {
                 x.CorrelateById(m => m.Message.OrderId);
@@ -27,6 +30,8 @@ namespace Service.StateMachine
                     }
                 }));
             });
+            Event(() => AccountClosed, x => x.CorrelateBy((saga, context) => saga.CustomerNumber == context.Message.CustomerNumber));
+
 
             InstanceState(x => x.CurrentState);
 
@@ -38,9 +43,18 @@ namespace Service.StateMachine
                     context.Instance.SubmitDate = context.Data.Timestamp;
                     context.Instance.Updated = DateTime.UtcNow;
                 })
-                .TransitionTo(Submitted));
+                .TransitionTo(Submitted),
+                When(OrderAccepted)
+                    .Activity(x => x.OfType<AcceptOrderActivity>())
+                    .TransitionTo(Accepted)
+                );
 
-            During(Submitted, Ignore(OrderSubmitted)); //Idempotnet: don't repeat the message again
+            //Idempotnet: don't repeat the message again
+            During(Submitted,
+                Ignore(OrderSubmitted),
+                When(AccountClosed)
+                .TransitionTo(Canceled)
+                );
 
             DuringAny(
                 When(OrderSubmitted)
@@ -55,19 +69,28 @@ namespace Service.StateMachine
                 .RespondAsync(x => x.Init<OrderStatus>(new OrderStatus
                 {
                     OrderId = x.Instance.CorrelationId,
-                    Status = x.Instance.CurrentState
+                    Status = x.Instance.CurrentState,
+                    CustomerNumber = x.Instance.CustomerNumber
                 })));
 
         }
 
         public State Submitted { get; private set; }
+        public State Accepted { get; private set; }
+        public State Canceled { get; private set; }
 
         public Event<OrderSubmitted> OrderSubmitted { get; private set; }
         public Event<CheckOrder> OrderStatusRequested { get; private set; }
+        public Event<CustomerAccountClosed> AccountClosed { get; private set; }
+        public Event<OrderAccepted> OrderAccepted { get; private set; }
+
+
     }
 
+    //IVersionedSaga interface namaspace should be changed upon different db either redis or mongo 
     public class OrderState : SagaStateMachineInstance, IVersionedSaga
     {
+        [BsonId]
         public Guid CorrelationId { get; set; }
         public int Version { get; set; }
 
