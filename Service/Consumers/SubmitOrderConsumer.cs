@@ -36,7 +36,6 @@ namespace Service.Consumers
     {
         public async Task Consume(ConsumeContext<SubmitOrder> context)
         {
-            throw new System.Exception();
             await Task.Delay(10);
 
             if (context.RequestId != null) //is request/response
