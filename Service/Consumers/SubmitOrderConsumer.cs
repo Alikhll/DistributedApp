@@ -12,8 +12,23 @@ namespace Service.Consumers
     {
         protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<SubmitOrderConsumer> consumerConfigurator)
         {
+            //endpointConfigurator.DiscardFaultedMessages();
+            //endpointConfigurator.DiscardSkippedMessages();
+
             endpointConfigurator.UseMessageRetry(r => r.Interval(3, 1000));
             endpointConfigurator.UseInMemoryOutbox();
+        }
+    }
+
+    /*
+     * By default, MassTransit will move faulted messages to the _error queue. This behavior can be customized for each receive endpoint.
+     * Just be called when we have fan in/out not request/response
+     */
+    public class SubmitOrderFaultConsumer : IConsumer<Fault<SubmitOrder>>
+    {
+        public Task Consume(ConsumeContext<Fault<SubmitOrder>> context)
+        {
+            return Task.FromResult(0);
         }
     }
 
@@ -21,6 +36,7 @@ namespace Service.Consumers
     {
         public async Task Consume(ConsumeContext<SubmitOrder> context)
         {
+            throw new System.Exception();
             await Task.Delay(10);
 
             if (context.RequestId != null) //is request/response

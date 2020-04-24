@@ -13,6 +13,8 @@ namespace WebApi
 {
     public class Startup
     {
+        //docker run -d -p 27017:27017 mongo
+        //docker run -d -p 5672:5672 -p 8080:15672 rabbitmq:3-management
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
