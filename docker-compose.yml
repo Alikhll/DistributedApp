@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  webapi:
+    image: ${DOCKER_REGISTRY-}webapi
+    build:
+      context: .
+      dockerfile: WebApi/Dockerfile
+  bus:
+    image: ${DOCKER_REGISTRY-}bus
+    build:
+      context: .
+      dockerfile: Bus/Dockerfile
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"
+      - "8080:15672"
+  mongo:
+    image: "mongo"
+    ports:
+      - "27017:27017"

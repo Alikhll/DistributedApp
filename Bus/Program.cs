@@ -28,7 +28,7 @@
                         cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
                             .MongoDbRepository(r =>
                             {
-                                r.Connection = "mongodb://localhost";
+                                r.Connection = "mongodb://mongo";
                                 r.DatabaseName = "orderdb";
                             });
 
@@ -49,6 +49,7 @@
         {
             return Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
+                cfg.Host("rabbitmq://rabbitmq");
                 cfg.ConfigureEndpoints(provider);
             });
         }
