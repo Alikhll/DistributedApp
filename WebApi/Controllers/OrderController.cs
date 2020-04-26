@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace WebApi.Controllers
 {
+    //Submit order using RequestSend
+    //Update order using Send(optional)
+    //Check order using OrderStatus(optional)
+    //Accept order using AcceptOrder
     [ApiController]
     [Route("[controller]")]
     public class OrderController : ControllerBase
@@ -14,14 +18,17 @@ namespace WebApi.Controllers
         private readonly IRequestClient<SubmitOrder> _submitOrderRequestClient;
         private readonly IRequestClient<CheckOrder> _checkOrderRequestClient;
         private readonly ISendEndpointProvider _sendEndpointProvider;
+        readonly IPublishEndpoint _publishEndpoint;
 
         public OrderController(IRequestClient<SubmitOrder> submitOrderRequestClient,
             IRequestClient<CheckOrder> checkOrderRequestClient,
-            ISendEndpointProvider sendEndpointProvider)
+            ISendEndpointProvider sendEndpointProvider,
+            IPublishEndpoint publishEndpoint)
         {
             _submitOrderRequestClient = submitOrderRequestClient;
             _sendEndpointProvider = sendEndpointProvider;
             _checkOrderRequestClient = checkOrderRequestClient;
+            _publishEndpoint = publishEndpoint;
         }
 
         //create saga
@@ -76,6 +83,19 @@ namespace WebApi.Controllers
             }
 
             return NotFound((await notFound).Message);
+        }
+
+        [HttpGet]
+        [Route("AcceptOrder")]
+        public async Task<IActionResult> AcceptOrder(Guid orderId)
+        {
+            await _publishEndpoint.Publish<OrderAccepted>(new OrderAccepted
+            {
+                OrderId = orderId,
+                Timestamp = InVar.Timestamp,
+            });
+
+            return Accepted();
         }
     }
 }

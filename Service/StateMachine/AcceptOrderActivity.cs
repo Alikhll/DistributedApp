@@ -1,14 +1,14 @@
 ﻿using Automatonymous;
+using Contract.Consumers;
 using Contract.StateMachine;
 using GreenPipes;
+using MassTransit;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Service.StateMachine
 {
-    class AcceptOrderActivity : Activity<OrderState, OrderAccepted>
+    public class AcceptOrderActivity : Activity<OrderState, OrderAccepted>
     {
         public void Accept(StateMachineVisitor visitor)
         {
@@ -17,7 +17,16 @@ namespace Service.StateMachine
 
         public async Task Execute(BehaviorContext<OrderState, OrderAccepted> context, Behavior<OrderState, OrderAccepted> next)
         {
-            Console.WriteLine(context.Data.OrderId);
+            Console.WriteLine("Hello, World. Order is {0}", context.Data.OrderId);
+
+            var consumeContext = context.GetPayload<ConsumeContext>();
+
+            var sendEndpoint = await consumeContext.GetSendEndpoint(new Uri("queue:fulfill-order"));
+
+            await sendEndpoint.Send<FulfillOrder>(new FulfillOrder
+            {
+                OrderId = context.Data.OrderId,
+            });
 
             await next.Execute(context).ConfigureAwait(false);
         }

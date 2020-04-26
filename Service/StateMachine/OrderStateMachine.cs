@@ -43,18 +43,17 @@ namespace Service.StateMachine
                     context.Instance.SubmitDate = context.Data.Timestamp;
                     context.Instance.Updated = DateTime.UtcNow;
                 })
-                .TransitionTo(Submitted),
-                When(OrderAccepted)
-                    .Activity(x => x.OfType<AcceptOrderActivity>())
-                    .TransitionTo(Accepted)
-                );
+                .TransitionTo(Submitted));
+
 
             //Idempotnet: don't repeat the message again
             During(Submitted,
                 Ignore(OrderSubmitted),
                 When(AccountClosed)
-                .TransitionTo(Canceled)
-                );
+                    .TransitionTo(Canceled),
+                When(OrderAccepted)
+                    .Activity(x => x.OfType<AcceptOrderActivity>())
+                    .TransitionTo(Accepted));
 
             DuringAny(
                 When(OrderSubmitted)
