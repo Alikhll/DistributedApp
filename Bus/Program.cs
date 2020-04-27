@@ -11,7 +11,8 @@
     using Service.Consumers;
     using Service.CourierActivities;
     using Service.StateMachine;
-    using Service.Warehouse;
+    using Service.Warehouse.Consumers;
+    using Service.Warehouse.StateMachines;
     using System;
     using System.Threading.Tasks;
 
@@ -31,6 +32,13 @@
                         cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
                         cfg.AddConsumersFromNamespaceContaining<AllocateInventoryConsumer>();
                         cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
+
+                        cfg.AddSagaStateMachine<AllocationStateMachine, AllocationState>()
+                            .MongoDbRepository(r =>
+                            {
+                                r.Connection = "mongodb://mongo";
+                                r.DatabaseName = "allocations";
+                            });
 
                         cfg.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderStateMachineDefinition))
                             .MongoDbRepository(r =>
@@ -59,6 +67,10 @@
             return Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
                 cfg.Host("rabbitmq://rabbitmq");
+
+                cfg.UseMessageScheduler(new Uri("queue:quartz"));
+                //cfg.UseInMemoryScheduler(); //need this MassTransit.Quartz, for test purposes
+
                 cfg.ConfigureEndpoints(provider);
             });
         }

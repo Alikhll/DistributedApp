@@ -89,6 +89,10 @@ namespace WebApi.Controllers
         [Route("AcceptOrder")]
         public async Task<IActionResult> AcceptOrder(Guid orderId)
         {
+            //AcceptOrderActivity
+            //FulfillOrder
+            //AllocateInventoryActivity
+            //AllocateInventoryConsumer
             await _publishEndpoint.Publish<OrderAccepted>(new OrderAccepted
             {
                 OrderId = orderId,

@@ -21,4 +21,18 @@ namespace Contract.Warehouse
         public Guid AllocationId { get; set; }
         public string Reason { get; set; }
     }
+
+    ///////////////////
+    ///////////////////
+
+    public class AllocationCreated
+    {
+        public Guid AllocationId { get; set; }
+        public TimeSpan HoldDuration { get; set; }
+    }
+
+    public class AllocationHoldDurationExpired
+    {
+        public Guid AllocationId { get; set; }
+    }
 }
