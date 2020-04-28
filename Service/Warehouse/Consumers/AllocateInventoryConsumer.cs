@@ -9,8 +9,6 @@ namespace Service.Warehouse.Consumers
     {
         public async Task Consume(ConsumeContext<AllocateInventory> context)
         {
-            await Task.Delay(500);
-
             await context.Publish<AllocationCreated>(new AllocationCreated
             {
                 AllocationId = context.Message.AllocationId,

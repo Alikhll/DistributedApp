@@ -47,4 +47,12 @@ namespace Contract.StateMachine
         public string CustomerNumber { get; set; }
     }
 
+    //////////////////////////////////////////
+    //////////////////////////////////////////
+
+    public class OrderFulfilmentFaulted
+    {
+        public Guid OrderId { get; set; }
+        public DateTime Timestamp{ get; set; }
+    }
 }

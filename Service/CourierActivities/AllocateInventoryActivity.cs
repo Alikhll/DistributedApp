@@ -15,9 +15,9 @@ namespace Service.CourierActivities
         }
         public async Task<CompensationResult> Compensate(CompensateContext<AllocateInventoryLogs> context)
         {
-            await context.Publish<AllocationReleaseRequested>(new
+            await context.Publish<AllocationReleaseRequested>(new AllocationReleaseRequested
             {
-                context.Log.AllocationId,
+                AllocationId = context.Log.AllocationId,
                 Reason = "Order Faulted"
             });
 

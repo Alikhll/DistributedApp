@@ -33,7 +33,7 @@
                         cfg.AddConsumersFromNamespaceContaining<AllocateInventoryConsumer>();
                         cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
 
-                        cfg.AddSagaStateMachine<AllocationStateMachine, AllocationState>()
+                        cfg.AddSagaStateMachine<AllocationStateMachine, AllocationState>(typeof(AllocationStateMachineDefinition))
                             .MongoDbRepository(r =>
                             {
                                 r.Connection = "mongodb://mongo";
