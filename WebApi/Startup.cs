@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Contract.Consumers;
 using Contract.StateMachine;
+using WebApi.SignalR;
 
 namespace WebApi
 {
@@ -22,6 +23,9 @@ namespace WebApi
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddRazorPages();
+
+            services.AddSignalR();
 
             services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
             services.AddMassTransit(cfg =>
@@ -52,12 +56,17 @@ namespace WebApi
             app.UseSwaggerUi3(); // serve Swagger UI
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                endpoints.MapRazorPages();
+
+                endpoints.MapHub<ChatHub>("/chatHub");
             });
         }
     }

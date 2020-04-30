@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: WebApi/Dockerfile
+    ports:
+      - "8081:80"
   bus:
     image: ${DOCKER_REGISTRY-}bus
     build:

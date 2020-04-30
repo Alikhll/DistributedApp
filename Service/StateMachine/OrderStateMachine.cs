@@ -1,4 +1,5 @@
 ﻿using Automatonymous;
+using Contract.Consumers;
 using Contract.StateMachine;
 using GreenPipes;
 using MassTransit;
@@ -6,6 +7,7 @@ using MassTransit.Definition;
 using MassTransit.MongoDbIntegration.Saga;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
+using System.Linq;
 
 namespace Service.StateMachine
 {
@@ -16,6 +18,7 @@ namespace Service.StateMachine
             Event(() => OrderSubmitted, x => x.CorrelateById(m => m.Message.OrderId));
             Event(() => OrderAccepted, x => x.CorrelateById(m => m.Message.OrderId));
             Event(() => FulfilmentFaulted, x => x.CorrelateById(m => m.Message.OrderId));
+            Event(() => FulfilmentOrderFaulted, x => x.CorrelateById(m => m.Message.Message.OrderId));
 
             Event(() => OrderStatusRequested, x =>
             {
@@ -57,8 +60,11 @@ namespace Service.StateMachine
                     .TransitionTo(Accepted));
 
             During(Accepted,
+                When(FulfilmentOrderFaulted)
+                    .Then(context => Console.WriteLine("Fulfill order faulted: " + context.Data.Exceptions.FirstOrDefault()?.Message))
+                    .TransitionTo(Faulted),
                 When(FulfilmentFaulted)
-                .TransitionTo(Faulted));
+                    .TransitionTo(Faulted));
 
             DuringAny(
                 When(OrderSubmitted)
@@ -89,6 +95,7 @@ namespace Service.StateMachine
         public Event<CustomerAccountClosed> AccountClosed { get; private set; }
         public Event<OrderAccepted> OrderAccepted { get; private set; }
         public Event<OrderFulfilmentFaulted> FulfilmentFaulted { get; private set; }
+        public Event<Fault<FulfillOrder>> FulfilmentOrderFaulted { get; private set; }
 
 
     }
