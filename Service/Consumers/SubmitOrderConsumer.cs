@@ -4,7 +4,11 @@ using GreenPipes;
 using MassTransit;
 using MassTransit.ConsumeConfigurators;
 using MassTransit.Definition;
+using MassTransit.SignalR.Contracts;
+using MassTransit.SignalR.Utils;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using System.Threading.Tasks;
+using WebApi.Hubs;
 
 namespace Service.Consumers
 {
@@ -36,6 +40,12 @@ namespace Service.Consumers
     {
         public async Task Consume(ConsumeContext<SubmitOrder> context)
         {
+            var protocols = new IHubProtocol[] { new JsonHubProtocol() };
+            await context.Publish<All<ChatHub>>(new
+            {
+                Messages = protocols.ToProtocolDictionary("ReceiveMessage", new object[] { "message", "ccc" })
+            });
+
             await Task.Delay(10);
 
             if (context.RequestId != null) //is request/response

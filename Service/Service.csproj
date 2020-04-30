@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit" Version="6.2.4" />
-    <PackageReference Include="MassTransit.MongoDb" Version="6.2.4" />
+    <PackageReference Include="MassTransit" Version="6.2.5" />
+    <PackageReference Include="MassTransit.MongoDb" Version="6.2.5" />
+    <PackageReference Include="MassTransit.SignalR" Version="6.2.5" />
   </ItemGroup>
 
   <ItemGroup>

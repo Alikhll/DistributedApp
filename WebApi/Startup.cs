@@ -8,7 +8,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Contract.Consumers;
 using Contract.StateMachine;
-using WebApi.SignalR;
+using WebApi.Hubs;
+using MassTransit.SignalR;
 
 namespace WebApi
 {
@@ -25,17 +26,21 @@ namespace WebApi
         {
             services.AddRazorPages();
 
-            services.AddSignalR();
+            services.AddSignalR().AddMassTransitBackplane();
 
             services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
             services.AddMassTransit(cfg =>
             {
+                cfg.AddSignalRHubConsumers<ChatHub>();
+
                 cfg.AddRequestClient<SubmitOrder>();
                 cfg.AddRequestClient<CheckOrder>();
 
                 cfg.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(c =>
                 {
                     c.Host("rabbitmq://rabbitmq");
+
+                    c.AddSignalRHubEndpoints<ChatHub>(provider);
                 }));
             });
             services.AddMassTransitHostedService();
