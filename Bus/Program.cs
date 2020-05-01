@@ -8,6 +8,7 @@
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Service.Booking;
     using Service.Consumers;
     using Service.CourierActivities;
     using Service.StateMachine;
@@ -24,6 +25,8 @@
             var builder = new HostBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddScoped<BookingFinalizedActivity>();
+                    services.AddScoped<BookingAcceptedActivity>();
                     services.AddScoped<AcceptOrderActivity>();
                     services.TryAddSingleton(KebabCaseEndpointNameFormatter.Instance);
 
@@ -32,6 +35,9 @@
                         cfg.AddConsumersFromNamespaceContaining<SubmitOrderConsumer>();
                         cfg.AddConsumersFromNamespaceContaining<AllocateInventoryConsumer>();
                         cfg.AddActivitiesFromNamespaceContaining<AllocateInventoryActivity>();
+
+                        cfg.AddConsumersFromNamespaceContaining<BookingConsumer>();
+                        cfg.AddActivitiesFromNamespaceContaining<BookFlightActivity>();
 
                         cfg.AddSagaStateMachine<AllocationStateMachine, AllocationState>(typeof(AllocationStateMachineDefinition))
                             .MongoDbRepository(r =>
@@ -45,6 +51,13 @@
                             {
                                 r.Connection = "mongodb://mongo";
                                 r.DatabaseName = "orderdb";
+                            });
+
+                        cfg.AddSagaStateMachine<BookingStateMachine, BookingState>(typeof(BookingStateMachineDefinition))
+                            .MongoDbRepository(r =>
+                            {
+                                r.Connection = "mongodb://mongo";
+                                r.DatabaseName = "bookings";
                             });
 
                         cfg.AddBus(ConfigureBus);

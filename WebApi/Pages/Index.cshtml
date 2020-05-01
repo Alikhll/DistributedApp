@@ -1,59 +1,54 @@
 ﻿@page
-<div class="container">
-    <div class="row">&nbsp;</div>
-    <div class="row">
-        <div class="col-2">User</div>
-        <div class="col-4"><input type="text" id="userInput" /></div>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<link rel="stylesheet" type="text/css" href="~/css/style.css">
+
+<div class="divMain">
+    <div class="jumbotron text-center">
+        <h1>Welcome to booking system</h1>
+        <p>Book Hotel, Flight and Car</p>
     </div>
-    <div class="row">
-        <div class="col-2">Message</div>
-        <div class="col-4"><input type="text" id="messageInput" /></div>
-    </div>
-    <div class="row">&nbsp;</div>
-    <div class="row">
-        <div class="col-6">
-            <input type="button" id="sendButton" value="Send Message" />
+
+    <div class="divContainer panel panel-default">
+        <div class="panel-body">
+            <div class="form-group">
+                <label for="hotel">Choose Hotel:</label>
+                <input type="text" class="form-control" id="hotel">
+            </div>
+
+            <div class="form-group">
+                <label for="flight">Choose Flight:</label>
+                <input type="text" class="form-control" id="flight">
+            </div>
+
+            <div class="form-group">
+                <label for="car">Choose Car:</label>
+                <input type="text" class="form-control" id="car">
+            </div>
+
+            <button type="button" onclick="purchase()" class="btn btn-default">Purchase</button>
         </div>
     </div>
-</div>
-<div class="row">
-    <div class="col-12">
-        <hr />
-    </div>
-</div>
-<div class="row">
-    <div class="col-6">
-        <ul id="messagesList"></ul>
+
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Please wait</h4>
+                </div>
+                <div class="modal-body">
+                    <p id="pLoading">Loading...</p>
+                    <p id="messages"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script src="~/js/signalr/dist/browser/signalr.js"></script>
-<script>
-    var connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
-
-    //Disable send button until connection is established
-    document.getElementById("sendButton").disabled = true;
-
-    connection.on("ReceiveMessage", function (user, message) {
-        var msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        var encodedMsg = user + " says " + msg;
-        var li = document.createElement("li");
-        li.textContent = encodedMsg;
-        document.getElementById("messagesList").appendChild(li);
-    });
-
-    connection.start().then(function () {
-        document.getElementById("sendButton").disabled = false;
-    }).catch(function (err) {
-        return console.error(err.toString());
-    });
-
-    document.getElementById("sendButton").addEventListener("click", function (event) {
-        var user = document.getElementById("userInput").value;
-        var message = document.getElementById("messageInput").value;
-        connection.invoke("SendMessage", user, message).catch(function (err) {
-            return console.error(err.toString());
-        });
-        event.preventDefault();
-    });
-</script>
+<script src="~/js/script.js"></script>
