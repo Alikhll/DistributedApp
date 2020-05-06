@@ -1,4 +1,7 @@
-﻿using MassTransit.Courier;
+﻿using GreenPipes;
+using MassTransit;
+using MassTransit.Courier;
+using MassTransit.Definition;
 using MassTransit.SignalR.Contracts;
 using MassTransit.SignalR.Utils;
 using Microsoft.AspNetCore.SignalR.Protocol;
@@ -7,6 +10,23 @@ using WebApi.Hubs;
 
 namespace Service.Booking
 {
+    public class BookCarActivityDefinition :
+        ActivityDefinition<BookCarActivity, BookCarArgument, BookCarLogs>
+    {
+        public BookCarActivityDefinition()
+        {
+            ConcurrentMessageLimit = 4;
+        }
+
+        protected override void ConfigureExecuteActivity(IReceiveEndpointConfigurator endpointConfigurator, IExecuteActivityConfigurator<BookCarActivity, BookCarArgument> executeActivityConfigurator)
+        {
+            endpointConfigurator.UseMessageRetry(r =>
+            {
+                r.Interval(2, 1000);
+            });
+        }
+    }
+
     public class BookCarActivity : IActivity<BookCarArgument, BookCarLogs>
     {
         public async Task<CompensationResult> Compensate(CompensateContext<BookCarLogs> context)
@@ -26,9 +46,9 @@ namespace Service.Booking
         {
             await Task.Delay(BookItem.LongDelay);
 
-            if(context.Arguments.Message.ToLower() == "bmw")
+            if (context.Arguments.Message.ToLower() == "bmw")
             {
-                throw new System.Exception();
+                throw new System.InvalidOperationException();
             }
 
             var protocols = new IHubProtocol[] { new JsonHubProtocol() };

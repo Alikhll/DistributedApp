@@ -1,12 +1,33 @@
 ﻿using Contract.Booking;
+using GreenPipes;
 using MassTransit;
+using MassTransit.ConsumeConfigurators;
 using MassTransit.Courier;
 using MassTransit.Courier.Contracts;
+using MassTransit.Definition;
 using System;
 using System.Threading.Tasks;
 
 namespace Service.Booking
 {
+    public class BookingConsumerDefinition :
+        ConsumerDefinition<BookingConsumer>
+    {
+        public BookingConsumerDefinition()
+        {
+            ConcurrentMessageLimit = 4;
+        }
+
+        protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+            IConsumerConfigurator<BookingConsumer> consumerConfigurator)
+        {
+            endpointConfigurator.UseMessageRetry(r =>
+            {
+                r.Interval(3, 1000);
+            });
+        }
+    }
+
     public class BookingConsumer : IConsumer<BookingModel>
     {
         public async Task Consume(ConsumeContext<BookingModel> context)
@@ -25,6 +46,7 @@ namespace Service.Booking
                     Message = context.Message.Hotel
                 });
 
+            //Retry activity has applied in its file
             builder.AddActivity("BookCar", new Uri("queue:book-car_execute"),
                 new BookCarArgument
                 {
@@ -48,6 +70,6 @@ namespace Service.Booking
 
     public static class BookItem
     {
-        public const int LongDelay = 2000;
+        public const int LongDelay = 500;
     }
 }
