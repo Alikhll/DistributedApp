@@ -31,7 +31,7 @@ namespace Service.Booking
     {
         public async Task<CompensationResult> Compensate(CompensateContext<BookCarLogs> context)
         {
-            await Task.Delay(BookItem.LongDelay);
+            await Task.Delay(1000);
 
             var protocols = new IHubProtocol[] { new JsonHubProtocol() };
             await context.Publish<All<ChatHub>>(new

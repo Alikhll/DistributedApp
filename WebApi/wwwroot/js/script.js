@@ -30,7 +30,7 @@ function purchase() {
     var flight = $("#flight").val();
     var car = $("#car").val();
 
-    fetch('/Booking/book', {
+    fetch('/Booking/BookingRequestResponse', {
         method: 'POST',
         headers: {
             'Accept': 'application/json',

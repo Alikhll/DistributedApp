@@ -10,6 +10,7 @@ using Contract.Consumers;
 using Contract.StateMachine;
 using WebApi.Hubs;
 using MassTransit.SignalR;
+using Contract.Booking;
 
 namespace WebApi
 {
@@ -35,6 +36,7 @@ namespace WebApi
 
                 cfg.AddRequestClient<SubmitOrder>();
                 cfg.AddRequestClient<CheckOrder>();
+                cfg.AddRequestClient<BookingRequestResponseModel>();
 
                 cfg.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(c =>
                 {
