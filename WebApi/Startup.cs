@@ -11,6 +11,8 @@ using Contract.StateMachine;
 using WebApi.Hubs;
 using MassTransit.SignalR;
 using Contract.Booking;
+using Prometheus;
+using MassTransit.PrometheusIntegration;
 
 namespace WebApi
 {
@@ -40,6 +42,8 @@ namespace WebApi
 
                 cfg.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(c =>
                 {
+                    c.UsePrometheusMetrics(serviceName: "api_service");
+
                     c.Host("rabbitmq://rabbitmq");
 
                     c.AddSignalRHubEndpoints<ChatHub>(provider);
@@ -69,6 +73,9 @@ namespace WebApi
 
             app.UseEndpoints(endpoints =>
             {
+                //Prometheus metrics
+                endpoints.MapMetrics();
+
                 endpoints.MapControllers();
 
                 endpoints.MapRazorPages();

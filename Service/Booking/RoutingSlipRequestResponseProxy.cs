@@ -4,6 +4,7 @@ using MassTransit.Courier;
 using MassTransit.Courier.Contracts;
 using MassTransit.Definition;
 using System;
+using System.Threading.Tasks;
 
 namespace Service.Booking
 {
@@ -18,7 +19,7 @@ namespace Service.Booking
     public class RequestProxy :
         RoutingSlipRequestProxy<BookingRequestResponseModel>
     {
-        protected override void BuildRoutingSlip(RoutingSlipBuilder builder, ConsumeContext<BookingRequestResponseModel> request)
+        protected override Task BuildRoutingSlip(RoutingSlipBuilder builder, ConsumeContext<BookingRequestResponseModel> request)
         {
             builder.AddActivity("BookFlight", new Uri("queue:book-flight_execute"),
                 new BookFlightArgument
@@ -37,6 +38,8 @@ namespace Service.Booking
                 {
                     Message = request.Message.Car
                 });
+
+            return Task.FromResult(0);
         }
     }
 
@@ -51,13 +54,18 @@ namespace Service.Booking
     public class ResponseProxy :
         RoutingSlipResponseProxy<BookingRequestResponseModel, BookingRequestResponseModel>
     {
-        protected override BookingRequestResponseModel CreateResponseMessage(ConsumeContext<RoutingSlipCompleted> context, BookingRequestResponseModel request)
+        protected override Task<BookingRequestResponseModel> CreateResponseMessage(ConsumeContext<RoutingSlipCompleted> context, BookingRequestResponseModel request)
         {
-            return new BookingRequestResponseModel
+            return Task.FromResult(new BookingRequestResponseModel
             {
                 BookingId = request.BookingId,
                 Car = "WOW"
-            };
+            });
+        }
+
+        protected override Task<Fault<BookingRequestResponseModel>> CreateFaultedResponseMessage(ConsumeContext<RoutingSlipFaulted> context, BookingRequestResponseModel request, Guid requestId)
+        {
+            return base.CreateFaultedResponseMessage(context, request, requestId);
         }
     }
 }

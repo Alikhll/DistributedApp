@@ -75,7 +75,7 @@
             await builder.RunConsoleAsync();
         }
 
-        static IBusControl ConfigureBus(IServiceProvider provider)
+        static IBusControl ConfigureBus(IRegistrationContext<IServiceProvider> provider)
         {
             return Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
